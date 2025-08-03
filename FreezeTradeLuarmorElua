@@ -42,7 +42,7 @@ closeButton.TextColor3 = Color3.new(1, 1, 1)
 closeButton.Font = Enum.Font.GothamBold
 closeButton.TextSize = 16
 closeButton.MouseButton1Click:Connect(function()
-gui:Destroy()
+	gui:Destroy()
 end)
 
 -- Freeze Button
@@ -75,21 +75,21 @@ frozenText.Visible = false
 
 -- Flashing function
 local function flashOverlay()
-freezeOverlay.Visible = true
-for i = 1, 6 do
-freezeOverlay.BackgroundTransparency = 0.2
-wait(0.1)
-freezeOverlay.BackgroundTransparency = 1
-wait(0.1)
-end
-freezeOverlay.BackgroundColor3 = Color3.new(0, 0, 0)
-freezeOverlay.BackgroundTransparency = 0.4
-frozenText.Visible = true
+	freezeOverlay.Visible = true
+	for i = 1, 6 do
+		freezeOverlay.BackgroundTransparency = 0.2
+		wait(0.1)
+		freezeOverlay.BackgroundTransparency = 1
+		wait(0.1)
+	end
+	freezeOverlay.BackgroundColor3 = Color3.new(0, 0, 0)
+	freezeOverlay.BackgroundTransparency = 0.4
+	frozenText.Visible = true
 end
 
 freezeBtn.MouseButton1Click:Connect(function()
-freezeBtn.Visible = false
-flashOverlay()
+	freezeBtn.Visible = false
+	flashOverlay()
 end)
 
 -- 🧲 Dragging logic
@@ -97,3 +97,35 @@ local dragging
 local dragInput
 local dragStart
 local startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+		startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+mainFrame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = mainFrame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+mainFrame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		update(input)
+	end
+end)
